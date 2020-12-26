@@ -19,3 +19,17 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class ScheduleScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('予定表')),
+      body: null,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {},
+      ),
+    );
+  }
+}
