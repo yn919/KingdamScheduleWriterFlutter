@@ -34,9 +34,24 @@ class ScheduleScreen extends StatelessWidget {
           body: ScheduleList(),
           floatingActionButton:
               Consumer<ScheduleDatas>(builder: (_, scheduleDatas, __) {
-            return FloatingActionButton(
-              child: Icon(Icons.add),
-              onPressed: () => scheduleDatas.addSchedule(),
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  child: FloatingActionButton(
+                    child: Icon(Icons.send),
+                    onPressed: () => {},
+                  ),
+                  margin: EdgeInsets.only(left: 10, right: 10),
+                ),
+                Container(
+                  child: FloatingActionButton(
+                    child: Icon(Icons.add),
+                    onPressed: () => scheduleDatas.addSchedule(),
+                  ),
+                  margin: EdgeInsets.only(left: 10, right: 10),
+                ),
+              ],
             );
           })),
     );
@@ -51,20 +66,25 @@ class ScheduleList extends StatelessWidget {
       itemCount: _scheduleDatas.schedules.length,
       itemBuilder: (context, index) => ChangeNotifierProvider.value(
         value: _scheduleDatas.schedules[index],
-        child: ScheduleTile(),
+        child: ScheduleCard(),
       ),
     );
   }
 }
 
-class ScheduleTile extends StatelessWidget {
+class ScheduleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final _scheduleData = Provider.of<ScheduleData>(context);
     return Card(
       child: Padding(
         child: Row(
-          children: [DatePickerButton()],
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            DatePickerButton(),
+            PlacePullDawn(),
+            TimePullDawn(),
+            MoreMenuButton()
+          ],
         ),
         padding: EdgeInsets.all(10.0),
       ),
@@ -78,9 +98,10 @@ class DatePickerButton extends StatelessWidget {
     final _scheduleData = Provider.of<ScheduleData>(context);
     return RaisedButton(
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Icon(Icons.timelapse),
-          Text("${_getDayFormatString(_scheduleData.date)})")
+          Text("${_getDayFormatString(_scheduleData.date)}")
         ],
       ),
       onPressed: () => _selectDate(context, _scheduleData),
@@ -95,12 +116,91 @@ class DatePickerButton extends StatelessWidget {
         firstDate: DateTime.now(),
         lastDate: DateTime.now().add(Duration(days: 360)));
     if (picked != null) {
-      scheduleData.date = picked;
+      scheduleData.setDate(picked);
     }
   }
 
   String _getDayFormatString(DateTime date) {
     initializeDateFormatting('ja');
-    return DateFormat('MM/dd(EEEE)').format(date).toString();
+    return DateFormat('MM/dd(E)', 'ja').format(date).toString();
+  }
+}
+
+class TimePullDawn extends StatelessWidget {
+  final List<String> _times = [
+    '9-11',
+    '11-13',
+    '13-15',
+    '15-17',
+    '17-19',
+    '19-21'
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final _scheduleData = Provider.of<ScheduleData>(context);
+    return DropdownButton(
+      items: _times.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      value: _scheduleData.time,
+      onChanged: (String value) {
+        _scheduleData.setTime(value);
+      },
+    );
+  }
+}
+
+class PlacePullDawn extends StatelessWidget {
+  final List<String> _places = [
+    'スポセン第1',
+    'スポセン第2',
+    '上納池',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final _scheduleData = Provider.of<ScheduleData>(context);
+    return DropdownButton(
+      items: _places.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      value: _scheduleData.place,
+      onChanged: (String value) {
+        _scheduleData.setPlace(value);
+      },
+    );
+  }
+}
+
+class MoreMenuButton extends StatelessWidget {
+  final List<String> _menuItems = ['削除', 'コピーして挿入'];
+  @override
+  Widget build(BuildContext context) {
+    final _scheduleData = Provider.of<ScheduleData>(context);
+    return Consumer<ScheduleDatas>(builder: (_, scheduleDatas, __) {
+      return PopupMenuButton(
+        itemBuilder: (context) => _menuItems.map((String value) {
+          return PopupMenuItem(
+            child: Text(value),
+            value: value,
+          );
+        }).toList(),
+        icon: Icon(Icons.more_vert),
+        onSelected: (value) {
+          switch (value) {
+            case '削除':
+              scheduleDatas.removeSchedule(_scheduleData);
+              break;
+          }
+        },
+      );
+    });
   }
 }
