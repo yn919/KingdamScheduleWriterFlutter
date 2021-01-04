@@ -52,7 +52,7 @@ class ScheduleDatas extends ChangeNotifier {
     _copySchedule.setPlace(schedule.place);
     _copySchedule.setTime(schedule.time);
 
-    _schedules.add(schedule);
+    _schedules.add(_copySchedule);
     notifyListeners();
   }
 
@@ -67,7 +67,7 @@ class ScheduleDatas extends ChangeNotifier {
     if (_schedules.length <= 0) return;
 
     String _outText = '';
-    _outText += '${_schedules[0].date.month}月の予定 \r\n';
+    _outText += '${_schedules[0].date.month}月の予定\r\n';
 
     for (var schedule in _schedules) {
       _outText +=
