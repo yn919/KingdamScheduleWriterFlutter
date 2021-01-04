@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
+
 import 'schedule.dart';
 
 void main() {
@@ -32,16 +31,22 @@ class ScheduleScreen extends StatelessWidget {
       child: Scaffold(
           appBar: AppBar(title: Text('予定表')),
           body: ScheduleList(),
-          floatingActionButton:
-              Consumer<ScheduleDatas>(builder: (_, scheduleDatas, __) {
+          floatingActionButton: Consumer<ScheduleDatas>(
+              builder: (context, scheduleDatas, widget) {
             return Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Container(
                   child: FloatingActionButton(
-                    child: Icon(Icons.send),
-                    onPressed: () => {},
-                  ),
+                      child: Icon(Icons.send),
+                      onPressed: () {
+                        scheduleDatas.copySchedulesToClipboard();
+
+                        Scaffold.of(context).hideCurrentSnackBar();
+                        final snackbar =
+                            SnackBar(content: Text('クリップボードにコピーしました'));
+                        Scaffold.of(context).showSnackBar(snackbar);
+                      }),
                   margin: EdgeInsets.only(left: 10, right: 10),
                 ),
                 Container(
@@ -78,7 +83,7 @@ class ScheduleCard extends StatelessWidget {
     return Card(
       child: Padding(
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             DatePickerButton(),
             PlacePullDawn(),
@@ -98,10 +103,10 @@ class DatePickerButton extends StatelessWidget {
     final _scheduleData = Provider.of<ScheduleData>(context);
     return RaisedButton(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           Icon(Icons.timelapse),
-          Text("${_getDayFormatString(_scheduleData.date)}")
+          Text("${_scheduleData.getDayFormatString()}")
         ],
       ),
       onPressed: () => _selectDate(context, _scheduleData),
@@ -118,11 +123,6 @@ class DatePickerButton extends StatelessWidget {
     if (picked != null) {
       scheduleData.setDate(picked);
     }
-  }
-
-  String _getDayFormatString(DateTime date) {
-    initializeDateFormatting('ja');
-    return DateFormat('MM/dd(E)', 'ja').format(date).toString();
   }
 }
 
@@ -197,6 +197,9 @@ class MoreMenuButton extends StatelessWidget {
           switch (value) {
             case '削除':
               scheduleDatas.removeSchedule(_scheduleData);
+              break;
+            case 'コピーして挿入':
+              scheduleDatas.copyAndInsertSchedule(_scheduleData);
               break;
           }
         },
